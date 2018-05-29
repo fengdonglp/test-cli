@@ -1,0 +1,41 @@
+#!/usr/bin/env node
+
+const program = require('commander');
+const path = require('path');
+const gitDownload = require('download-git-repo');
+
+program
+  .usage('<template-name> [project-name]')
+  .option('-c --clone', 'use git-clone');
+
+/**
+ * 确保在命令行运行 test init 无参数时显示该命令的help提示
+ * help指令是commander自动生成的，如果想自定义，可以查看vue-cli源码35-44行
+ */
+
+function help () {
+  program.parse(process.argv);
+  if (program.args.length < 1) return program.help();
+}
+help();
+
+let template = program.args[0];
+// 最终模板渲染后存放的位置
+const desc = path.resolve(program.args[1] || '.');
+
+gitDownload(
+  'vuejs-templates/' + template, 
+  // 这里仿照vue-cli，将模板存储在硬盘根目录下，用于下次新建项目时，可以离线使用
+  path.join(require('os').homedir(), '.vue-template', template), 
+  {
+    clone: true
+  },
+  err => {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log('下载成功');
+    }
+  }
+)
+
