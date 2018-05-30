@@ -2,7 +2,10 @@
 
 const program = require('commander');
 const path = require('path');
+const ora = require('ora');
 const gitDownload = require('download-git-repo');
+const fs = require('fs');
+const rm = require('rimraf').sync;
 
 program
   .usage('<template-name> [project-name]')
@@ -22,19 +25,28 @@ help();
 let template = program.args[0];
 // 最终模板渲染后存放的位置
 const desc = path.resolve(program.args[1] || '.');
+const spinner = ora('downloading template');
+
+spinner.start();
+
+// if (fs.existsSync(path.join(__dirname, '../', '.vue-template/', template))) {
+//   rm(path.join(__dirname, '../', '.vue-template/', template));
+// }
 
 gitDownload(
-  'vuejs-templates/' + template, 
-  // 这里仿照vue-cli，将模板存储在硬盘根目录下，用于下次新建项目时，可以离线使用
-  path.join(require('os').homedir(), '.vue-template', template), 
+  template, 
+  // 这里可以仿照vue-cli，将模板存储在硬盘根目录下，用于下次新建项目时，可以离线使用
+  // 我这里因为本地已经有了，所以下载在项目文件下，方便测试
+  path.join(__dirname, '../', '.vue-template/', template), 
   {
     clone: true
   },
   err => {
     if (err) {
+      spinner.fail('下载失败');
       console.log(err);
     } else {
-      console.log('下载成功');
+      spinner.succeed('下载完成');
     }
   }
 )
